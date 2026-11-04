@@ -69,6 +69,23 @@
   --font-mono: "Sometype Mono", ui-monospace, Consolas, monospace;
 }
 
+@theme {
+  --animate-heartbeat: heartbeat 1.6s ease-in-out infinite;
+  @keyframes heartbeat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+    15% {
+      transform: scale(1.25);
+    }
+    30% {
+      transform: scale(1.1);
+    }
+  }
+}
+
 @layer base {
   html {
     scroll-padding-block: 5.5rem 6rem;
