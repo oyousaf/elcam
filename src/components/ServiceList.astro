@@ -1,0 +1,20 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { rooms } from '../data/building';
+interface Props { services: CollectionEntry<'services'>[] }
+const { services } = Astro.props;
+const numberOf = (id: string) => rooms.find((r) => r.id === id)?.no;
+const slug = (id: string) => id.split('/')[1];
+---
+<ol class="rows">
+  {services.map((s) => (
+    <li>
+      <a href={`/${s.id}/`} class="row">
+        <span class="row-no" aria-hidden="true">{numberOf(s.id)}</span>
+        <span class={`row-title vt-${slug(s.id)}`}>{s.data.title}</span>
+        <span class="row-text">{s.data.summary}</span>
+        <span class="row-arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+  ))}
+</ol>

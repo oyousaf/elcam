@@ -1,0 +1,144 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import BuildingSheet from '../components/BuildingSheet.astro';
+import Quote from '../components/Quote.astro';
+import CallBand from '../components/CallBand.astro';
+import { groups, site, type GroupKey } from '../data/site';
+import { rooms } from '../data/building';
+
+const services = await getCollection('services');
+const slug = (id: string) => id.split('/')[1];
+const key: { group: GroupKey; heading: string }[] = [
+  { group: 'homes', heading: 'Homes' },
+  { group: 'maintenance', heading: 'Maintenance' },
+  { group: 'businesses', heading: 'Businesses' },
+];
+const keyRooms = (group: GroupKey) =>
+  rooms
+    .filter((room) => room.id.startsWith(`${group}/`))
+    .map((room) => ({ room, title: services.find((s) => s.id === room.id)?.data.title ?? room.short }));
+
+const programme = [
+  { no: '01', bar: 'bar-1', title: 'Site inspection', text: 'We visit, see the job for ourselves and talk through what you need. For homes, the inspection is free.' },
+  { no: '02', bar: 'bar-2', title: 'Written estimate', text: 'You get a full, detailed written estimate, so you can see what is included before anything starts.' },
+  { no: '03', bar: 'bar-3', title: 'Date and timescale', text: 'Once you approve the estimate, we arrange a date and timescale for the work to be completed.' },
+];
+
+const weeks = Array.from({ length: 52 }, (_, i) => i);
+const schedule = [
+  { label: 'One-off', on: (w: number) => w === 20 },
+  { label: 'Weekly', on: () => true },
+  { label: 'Monthly', on: (w: number) => w % 4 === 0 },
+  { label: 'Quarterly', on: (w: number) => w % 13 === 0 },
+];
+
+const doors: { group: GroupKey; text: string }[] = [
+  { group: 'homes', text: 'Extensions, conversions, kitchens, bathrooms, tiling, joinery and decorating.' },
+  { group: 'businesses', text: 'Office fit-outs, contract maintenance, fire doors, partitions and ceilings.' },
+  { group: 'maintenance', text: 'Plumbing, electrics and insurance repairs, once or on a schedule.' },
+];
+---
+<Base
+  fullTitle
+  title="Building and property maintenance in Milton Keynes | Elcam"
+  description="Elcam Property Maintenance: building, decorating, plumbing, electrical and maintenance work for homes and businesses in Milton Keynes. Call 01908 508331."
+>
+  <section class="wrap pt-8 md:pt-12">
+    <h1 class="display-hero">One team for <em>every room</em> in the building</h1>
+    <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,34rem)_auto] lg:items-end lg:justify-between">
+      <p class="text-xl">Building and decorating, plumbing and electrical work for homes and businesses across {site.area}, from a leaking tap to a full office fit-out.</p>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a href={site.phoneHref} class="btn btn-hivis">Call {site.phone}</a>
+        <a href="/contact/" class="btn btn-line">Get an estimate</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="key-heading" class="wrap pt-10 pb-16 md:pb-24">
+    <BuildingSheet draw label="Section A–A: Pick a room" />
+    <div class="drawing-key">
+      <h2 id="key-heading" class="sr-only">Our services, room by room</h2>
+      {key.map((col) => (
+        <div>
+          <h3 class="key-head"><a href={`/${col.group}/`}>{col.heading} <span aria-hidden="true">→</span></a></h3>
+          <ul>
+            {keyRooms(col.group).map(({ room, title }) => (
+              <li>
+                <a href={`/${room.id}/`} class={`key-link key-${slug(room.id)}`}>
+                  <span class="key-no" aria-hidden="true">{room.no}</span>
+                  <span class={`vt-${slug(room.id)}`}>{title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap py-16 md:py-24">
+      <p class="eyebrow">Programme of works</p>
+      <h2 class="display-lg mt-4 max-w-4xl">No surprises between the first visit and the finished job</h2>
+      <ol class="gantt">
+        {programme.map((step) => (
+          <li>
+            <h3>{step.title}</h3>
+            <div class="gantt-track" aria-hidden="true"><span class={`gantt-bar ${step.bar}`}>{step.no}</span></div>
+            <p>{step.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap py-16 md:py-24">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:items-end">
+      <div>
+        <p class="eyebrow">Maintenance schedule</p>
+        <h2 class="display-lg mt-4">We turn up as often as your building needs</h2>
+        <p class="mt-5 max-w-xl">We check and maintain everything from light fittings, ceiling tiles and toilets to decoration, locks and doors.</p>
+        <a href="/maintenance/" class="btn btn-line mt-7">Explore maintenance <span aria-hidden="true">→</span></a>
+      </div>
+      <div>
+        <ul class="year" aria-label="Visit schedules available">
+          {schedule.map((row) => (
+            <li>
+              <span class="year-label">{row.label}</span>
+              <span class="year-track" aria-hidden="true">
+                {weeks.map((w) => <i class={row.on(w) ? 'on' : ''}></i>)}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p class="year-note" aria-hidden="true"><span>Week 1</span><span>Week 52</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap pb-16 md:pb-24">
+    <ul class="doors">
+      {doors.map((door) => (
+        <li>
+          <a href={`/${door.group}/`} class="door">
+            <span class="door-title">{groups[door.group].label}</span>
+            <span class="door-text">{door.text}</span>
+            <span class="door-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="wrap pb-16 md:pb-24">
+    <p class="eyebrow mb-6">Signed off by customers</p>
+    <div class="signoffs" role="group" aria-label="Customer testimonials" tabindex="0">
+      <Quote id="facilities" />
+      <Quote id="decorating" />
+      <Quote id="fitout" />
+    </div>
+  </section>
+
+  <CallBand />
+</Base>

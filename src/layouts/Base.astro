@@ -1,0 +1,168 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import { site, nav } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  fullTitle?: boolean;
+}
+
+const { title, description, fullTitle = false } = Astro.props;
+const pageTitle = fullTitle ? title : `${title} | Elcam`;
+const path = Astro.url.pathname;
+const canonical = new URL(path, Astro.site).href;
+const ogImage = new URL('/og.png', Astro.site).href;
+const isCurrent = (href: string) => path === href || path.startsWith(href);
+
+const business = {
+  '@context': 'https://schema.org',
+  '@type': 'GeneralContractor',
+  name: site.legalName,
+  url: Astro.site?.href,
+  telephone: '+441908508331',
+  email: site.email,
+  areaServed: ['Milton Keynes', 'Aylesbury'],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: site.address[0],
+    addressLocality: site.address[1],
+    addressRegion: site.address[2],
+    postalCode: site.address[3],
+    addressCountry: 'GB',
+  },
+  sameAs: [site.facebook, site.x],
+};
+const speculation = {
+  prerender: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/contact/*' } }] }, eagerness: 'moderate' }],
+};
+const titleBlock = [
+  { label: 'Company', value: site.legalName },
+  { label: 'Registered', value: `England and Wales, no. ${site.companyNumber}` },
+  { label: 'Membership', value: 'Federation of Master Builders' },
+  { label: 'Covering', value: site.area },
+];
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/theme-init.js" is:inline></script>
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {!__INDEXABLE__ && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/big-shoulders.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f0e8" data-media="(prefers-color-scheme: light)" data-color="#f2f0e8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a1560" data-media="(prefers-color-scheme: dark)" data-color="#0a1560" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(business)} />
+    <script type="speculationrules" set:html={JSON.stringify(speculation)} />
+    <slot name="head" />
+  </head>
+  <body class="flex min-h-dvh flex-col pb-16 lg:pb-0">
+    <a href="#main" class="skip">Skip to main content</a>
+    <div class="scroll-rule" aria-hidden="true"></div>
+
+    <header class="masthead">
+      <div class="wrap flex min-h-16 items-center justify-between gap-3">
+        <a href="/" class="wordmark">
+          <span class="wordmark-main">Elcam</span>
+          <span class="wordmark-sub">Property<br />Maintenance</span>
+        </a>
+
+        <nav aria-label="Main" class="hidden lg:block">
+          <ul class="flex items-center">
+            {nav.map((item) => (
+              <li>
+                <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} class="navlink">{item.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div class="flex items-center gap-2 md:gap-4">
+          <a href={site.phoneHref} class="masthead-phone hidden md:inline-flex">{site.phone}</a>
+          <ThemeToggle />
+          <button type="button" popovertarget="mobile-nav" class="menu-btn lg:hidden">Menu</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="mobile-nav" popover class="menu band">
+      <div class="wrap flex min-h-16 items-center justify-between">
+        <span class="font-mono text-sm">Index</span>
+        <button type="button" popovertarget="mobile-nav" popovertargetaction="hide" class="menu-btn">Close</button>
+      </div>
+      <nav aria-label="Menu" class="wrap pt-2 pb-8">
+        <ul>
+          {nav.map((item, i) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} class="menu-link">
+                <span class="font-mono text-sm" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <a href={site.phoneHref} class="btn btn-hivis mt-8 w-full">Call {site.phone}</a>
+      </nav>
+    </div>
+
+    <main id="main" tabindex="-1" class="grow outline-hidden">
+      <slot />
+    </main>
+
+    <footer class="band">
+      <div class="wrap pt-12">
+        <dl class="titleblock">
+          {titleBlock.map((row) => (
+            <div>
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))}
+          <div>
+            <dt>Phone</dt>
+            <dd><a href={site.phoneHref} class="font-bold underline">{site.phone}</a></dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd><a href={`mailto:${site.email}`} class="underline">{site.email}</a></dd>
+          </div>
+          <div>
+            <dt>Address</dt>
+            <dd>{site.address.join(', ')}</dd>
+          </div>
+          <div>
+            <dt>Elsewhere</dt>
+            <dd class="flex flex-wrap gap-x-4">
+              <a href={site.facebook} rel="noopener" class="inline-flex min-h-7 items-center underline">Facebook</a>
+              <a href={site.x} rel="noopener" class="inline-flex min-h-7 items-center underline">X (Twitter)</a>
+              <a href="/privacy/" class="inline-flex min-h-7 items-center underline">Privacy</a>
+            </dd>
+          </div>
+        </dl>
+        <p class="footer-mark" aria-hidden="true">Elcam</p>
+      </div>
+    </footer>
+
+    <nav aria-label="Quick contact" class="quickbar lg:hidden">
+      <a href={site.phoneHref} class="quickbar-call">Call now</a>
+      <a href="/contact/">Get an estimate</a>
+    </nav>
+  </body>
+</html>

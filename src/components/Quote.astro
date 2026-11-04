@@ -1,0 +1,9 @@
+---
+import { testimonials, type TestimonialKey } from '../data/site';
+interface Props { id: TestimonialKey }
+const t = testimonials[Astro.props.id];
+---
+<figure class="signoff">
+  <blockquote>“{t.quote}”</blockquote>
+  <figcaption>{t.by}</figcaption>
+</figure>

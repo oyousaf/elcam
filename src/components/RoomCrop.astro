@@ -1,0 +1,20 @@
+---
+import { cropFor, renderDrawing, rooms } from '../data/building';
+
+interface Props { id: string }
+const room = rooms.find((r) => r.id === Astro.props.id);
+if (!room) throw new Error(`No room drawn for ${Astro.props.id}`);
+---
+<div class="sheet sheet-crop">
+  <div class="sheet-bar">
+    <span>Detail {room.no}</span>
+    <span>Not to scale</span>
+  </div>
+  <svg
+    class={`bld bld-${room.drawing} bld-zoom`}
+    viewBox={cropFor(room)}
+    preserveAspectRatio="xMidYMid slice"
+    aria-hidden="true"
+    set:html={renderDrawing(room.drawing, 'crop', [room.id])}
+  />
+</div>

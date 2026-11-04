@@ -1,0 +1,17 @@
+---
+import { site } from '../data/site';
+interface Props { title?: string }
+const { title = 'Tell us about the job' } = Astro.props;
+---
+<section class="hivis">
+  <div class="wrap py-14 md:py-20">
+    <h2 class="display-xl">{title}</h2>
+    <div class="mt-8 grid items-end gap-8 lg:grid-cols-[1fr_auto]">
+      <a href={site.phoneHref} class="callband-phone">{site.phone}</a>
+      <div class="max-w-md">
+        <p>The best way to reach us is by phone or email. Prefer to write it down? Send an enquiry and we'll get back to you as soon as possible.</p>
+        <a href="/contact/" class="btn btn-ink mt-5">Send an enquiry <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>

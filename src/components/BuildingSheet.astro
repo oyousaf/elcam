@@ -1,0 +1,34 @@
+---
+import { renderDrawing, viewBoxes } from '../data/building';
+
+interface Props {
+  drawings?: ('house' | 'office')[];
+  focus?: string[];
+  draw?: boolean;
+  label?: string;
+}
+const { drawings = ['house', 'office'], focus = [], draw = false, label = 'Section A–A' } = Astro.props;
+const single = drawings.length === 1;
+---
+<div class:list={['sheet', { 'sheet-draw': draw }]} data-crosshair>
+  <div class="sheet-bar">
+    <span>{label}</span>
+    <span class="sheet-readout" data-readout aria-hidden="true">Not to scale</span>
+  </div>
+  <div class:list={['sheet-art', { 'sheet-art-single': single }]} aria-hidden="true">
+    {drawings.map((drawing) => (
+      <svg
+        class={`bld bld-${drawing}`}
+        viewBox={viewBoxes[drawing]}
+        role="presentation"
+        set:html={renderDrawing(drawing, `${drawing}${focus.length}`, focus)}
+      />
+    ))}
+  </div>
+  <i class="sheet-x" aria-hidden="true"></i>
+  <i class="sheet-y" aria-hidden="true"></i>
+</div>
+
+<script>
+  import '../scripts/crosshair';
+</script>

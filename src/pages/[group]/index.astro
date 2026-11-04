@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import BuildingSheet from '../../components/BuildingSheet.astro';
+import Quote from '../../components/Quote.astro';
+import CallBand from '../../components/CallBand.astro';
+import ServiceList from '../../components/ServiceList.astro';
+import { groups, site, type GroupKey } from '../../data/site';
+
+export function getStaticPaths() {
+  return (Object.keys(groups) as GroupKey[]).map((group) => ({ params: { group } }));
+}
+
+const key = Astro.params.group as GroupKey;
+const group = groups[key];
+const services = (await getCollection('services'))
+  .filter((s) => s.id.startsWith(`${key}/`))
+  .sort((a, b) => a.data.order - b.data.order);
+const focus = services.map((s) => s.id);
+const drawing = key === 'homes' ? 'house' : 'office';
+---
+<Base title={group.metaTitle} description={group.description}>
+  <section class="wrap grid gap-10 pt-8 pb-12 md:pt-12 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:gap-14 lg:pb-16">
+    <div>
+      <p class="eyebrow">{group.label}</p>
+      <h1 class="display-page mt-4">{group.title}</h1>
+      <p class="mt-6 max-w-xl text-xl">{group.lede}</p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/contact/" class="btn btn-hivis">{group.cta}</a>
+        <a href={site.phoneHref} class="btn btn-line">Call {site.phone}</a>
+      </div>
+    </div>
+    <BuildingSheet drawings={[drawing]} focus={focus} label={`Section: ${group.label}`} />
+  </section>
+
+  <section class="wrap pb-14 md:pb-20">
+    <div class="prose-body">
+      {group.body.map((p) => <p>{p}</p>)}
+    </div>
+  </section>
+
+  <section class="wrap pb-16 md:pb-24">
+    <h2 class="display-lg mb-8">Our services</h2>
+    <ServiceList services={services} />
+  </section>
+
+  {group.testimonial && (
+    <section class="wrap max-w-5xl pb-16 md:pb-24">
+      <Quote id={group.testimonial} />
+    </section>
+  )}
+
+  <CallBand />
+</Base>

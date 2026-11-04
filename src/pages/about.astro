@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import CallBand from '../components/CallBand.astro';
+import { site } from '../data/site';
+
+const facts = [
+  { label: 'Covering', value: site.area },
+  { label: 'Working with', value: 'Homeowners, offices and commercial premises' },
+  { label: 'Membership', value: 'Federation of Master Builders' },
+  { label: 'Qualifications', value: 'GQA Qualifications' },
+  { label: 'Registered', value: `Limited company in England and Wales, number ${site.companyNumber}` },
+];
+---
+<Base title="About us" description="Elcam Property Maintenance Ltd is a Milton Keynes refurbishment and maintenance company and a member of the Federation of Master Builders.">
+  <section class="wrap py-12 md:py-16">
+    <p class="eyebrow">About Elcam</p>
+    <h1 class="display-page mt-4">Unrivalled quality, uncompromising care</h1>
+    <div class="mt-12 grid gap-12 lg:grid-cols-[1.1fr_1fr]">
+      <div class="prose-body">
+        <p class="text-xl">{site.legalName} provides a comprehensive refurbishment and maintenance service: building and decorating, plumbing and electrical work, contract maintenance and a wide range of work for offices and commercial property.</p>
+        <p>We have built our reputation in both the commercial and domestic markets through the quality of our workmanship and high levels of customer satisfaction.</p>
+        <p>Homeowners come to us to improve the home they already have. Businesses come to us because the condition of their premises matters to their staff and their customers.</p>
+      </div>
+      <dl class="titleblock titleblock-stack">
+        {facts.map((f) => (
+          <div>
+            <dt>{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+  <CallBand />
+</Base>

@@ -1,0 +1,141 @@
+---
+import { actions, isInputError } from 'astro:actions';
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+
+export const prerender = false;
+
+const result = Astro.getActionResult(actions.enquiry);
+const fieldErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
+const generalError = result?.error && !isInputError(result.error);
+const delivery = result?.data?.delivery;
+const errorOf = (name: string) => (fieldErrors as Record<string, string[] | undefined>)[name]?.[0];
+
+const fields = [
+  { name: 'name', label: 'Your name', type: 'text', autocomplete: 'name', required: true },
+  { name: 'email', label: 'Email address', type: 'email', autocomplete: 'email', required: true },
+  { name: 'phone', label: 'Phone number (optional)', type: 'tel', autocomplete: 'tel', required: false },
+] as const;
+const errorList = ['name', 'email', 'phone', 'type', 'message'].filter(errorOf);
+
+let values: Record<string, string> = {};
+if (Astro.request.method === 'POST' && delivery !== 'sent') {
+  const data = await Astro.request.clone().formData().catch(() => null);
+  if (data) values = Object.fromEntries([...data.entries()].filter(([, v]) => typeof v === 'string')) as Record<string, string>;
+}
+const options = [
+  { value: 'home', label: 'Work on my home' },
+  { value: 'business', label: 'Work on business premises' },
+  { value: 'maintenance', label: 'Regular maintenance' },
+  { value: 'other', label: 'Something else' },
+];
+---
+<Base title="Contact us" description="Contact Elcam Property Maintenance in Milton Keynes on 01908 508331, by email, or by sending an enquiry through our website.">
+  <section class="wrap py-14 md:py-20">
+    <p class="eyebrow">Contact</p>
+    <h1 class="display-hero mt-4">Tell us about the job</h1>
+
+    <div class="mt-12 grid gap-14 lg:grid-cols-[1fr_1.25fr]">
+      <div>
+        <p class="max-w-md">The best way to reach us is by phone or email. Alternatively, fill in the form and we'll get back to you as soon as possible.</p>
+        <dl class="titleblock titleblock-stack mt-8">
+          <div>
+            <dt>Phone</dt>
+            <dd class="mt-1"><a href={site.phoneHref} class="font-mono text-2xl font-semibold text-brand underline-offset-4 hover:underline">{site.phone}</a></dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd class="mt-1"><a href={`mailto:${site.email}`} class="text-brand underline">{site.email}</a></dd>
+          </div>
+          <div>
+            <dt>Address</dt>
+            <dd class="mt-1">
+              <address class="not-italic">{site.address.map((line) => <span class="block">{line}</span>)}</address>
+              <a href={site.mapsUrl} rel="noopener" class="mt-2 inline-flex min-h-7 items-center text-brand underline">Open in Google Maps</a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="jobcard">
+        <h2 class="display-md">Job sheet: send an enquiry</h2>
+
+        {delivery === 'sent' && (
+          <p role="status" class="mt-6 border-l-4 border-success bg-paper p-4 font-bold">Thanks, your enquiry has been sent. We'll get back to you as soon as possible.</p>
+        )}
+        {delivery === 'off' && (
+          <p role="status" class="mt-6 border-l-4 border-brand bg-paper p-4">Your details passed our checks, but online enquiries aren't switched on yet, so <strong>nothing has been sent</strong>. Please call <a href={site.phoneHref} class="font-bold text-brand underline">{site.phone}</a> or email <a href={`mailto:${site.email}`} class="font-bold text-brand underline">{site.email}</a>.</p>
+        )}
+        {generalError && (
+          <p role="alert" class="mt-6 border-l-4 border-danger bg-paper p-4">Sorry, we couldn't send your enquiry. Please call <a href={site.phoneHref} class="font-bold text-brand underline">{site.phone}</a> instead.</p>
+        )}
+        {errorList.length > 0 && (
+          <div role="alert" class="mt-6 border-l-4 border-danger bg-paper p-4">
+            <p class="font-bold">Please fix the following:</p>
+            <ul class="mt-2 space-y-1">
+              {errorList.map((name) => <li><a href={`#${name}`} class="text-danger underline">{errorOf(name)}</a></li>)}
+            </ul>
+          </div>
+        )}
+
+        <form method="POST" action={actions.enquiry} class="mt-6 space-y-6">
+          {fields.map((f) => (
+            <div>
+              <label for={f.name} class="mb-2 block font-semibold">{f.label}</label>
+              {errorOf(f.name) && <p id={`${f.name}-error`} class="mb-2 text-base font-bold text-danger">{errorOf(f.name)}</p>}
+              <input
+                class="field-input"
+                id={f.name}
+                name={f.name}
+                type={f.type}
+                autocomplete={f.autocomplete}
+                required={f.required}
+                value={values[f.name] ?? ''}
+                aria-invalid={errorOf(f.name) ? 'true' : undefined}
+                aria-describedby={errorOf(f.name) ? `${f.name}-error` : undefined}
+              />
+            </div>
+          ))}
+
+          <div>
+            <label for="type" class="mb-2 block font-semibold">What is it about?</label>
+            {errorOf('type') && <p id="type-error" class="mb-2 text-base font-bold text-danger">{errorOf('type')}</p>}
+            <select
+              class="field-input"
+              id="type"
+              name="type"
+              required
+              aria-invalid={errorOf('type') ? 'true' : undefined}
+              aria-describedby={errorOf('type') ? 'type-error' : undefined}
+            >
+              <option value="" selected={!values.type}>Please choose</option>
+              {options.map((o) => <option value={o.value} selected={values.type === o.value}>{o.label}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label for="message" class="mb-2 block font-semibold">Your message</label>
+            {errorOf('message') && <p id="message-error" class="mb-2 text-base font-bold text-danger">{errorOf('message')}</p>}
+            <textarea
+              class="field-input"
+              id="message"
+              name="message"
+              rows="6"
+              required
+              aria-invalid={errorOf('message') ? 'true' : undefined}
+              aria-describedby={errorOf('message') ? 'message-error' : undefined}
+            >{values.message ?? ''}</textarea>
+          </div>
+
+          <div class="sr-only" aria-hidden="true">
+            <label for="website">Leave this field empty</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <p class="text-base text-muted">We use your details to reply to your enquiry. See our <a href="/privacy/" class="text-brand underline">privacy notice</a>.</p>
+          <button type="submit" class="btn btn-hivis w-full sm:w-auto">Send enquiry</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</Base>
