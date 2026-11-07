@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { site, nav } from '../data/site';
+import ScrollTop from '../components/ScrollTop.astro';
 
 interface Props {
   title: string;
@@ -167,5 +168,6 @@ const titleBlock = [
       <a href={site.phoneHref} class="quickbar-call">Call now</a>
       <a href="/contact/">Get an estimate</a>
     </nav>
+    <ScrollTop />
   </body>
 </html>
